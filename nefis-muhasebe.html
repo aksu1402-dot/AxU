@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nefis Mertebeleri — Öz-Muhasebe</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Crimson+Pro:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0c0c0e;
+    --bg-alt:#151519;
+    --bg-card:#1a1a1f;
+    --line:#2a2a30;
+    --gold:#c9a227;
+    --gold-light:#e8c766;
+    --text:#e8e3d8;
+    --text-dim:#8f8a7f;
+    --emmare:#a6423e;
+    --emmare-dim:#4a2422;
+    --levvame:#b98a34;
+    --levvame-dim:#4a3a1e;
+    --mulhime:#3f8a75;
+    --mulhime-dim:#1f3c34;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Crimson Pro', serif;
+    min-height:100vh;
+  }
+  body{
+    display:flex;
+    justify-content:center;
+    padding:32px 16px 80px;
+  }
+  .wrap{
+    width:100%;
+    max-width:640px;
+  }
+  .arabic{
+    font-family:'Amiri', serif;
+    direction:rtl;
+  }
+  .mono{
+    font-family:'IBM Plex Mono', monospace;
+  }
+  .screen{display:none;}
+  .screen.active{display:block; animation:fadeIn .4s ease;}
+  @keyframes fadeIn{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);}}
+
+  /* ---- INTRO ---- */
+  .intro-header{
+    text-align:center;
+    padding:8px 0 28px;
+    border-bottom:1px solid var(--line);
+    margin-bottom:28px;
+  }
+  .intro-header .arabic{
+    font-size:2.4rem;
+    color:var(--gold-light);
+    line-height:1.4;
+    margin-bottom:6px;
+  }
+  .intro-header h1{
+    font-weight:600;
+    font-size:1.5rem;
+    letter-spacing:.02em;
+    color:var(--text);
+  }
+  .intro-header .sub{
+    color:var(--text-dim);
+    font-size:.95rem;
+    margin-top:6px;
+    font-style:italic;
+  }
+  .caveat{
+    background:var(--bg-alt);
+    border:1px solid var(--line);
+    border-left:3px solid var(--gold);
+    padding:16px 18px;
+    border-radius:4px;
+    font-size:.92rem;
+    line-height:1.65;
+    color:var(--text-dim);
+    margin-bottom:20px;
+  }
+  .caveat strong{color:var(--gold-light); font-weight:600;}
+  .dims{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:10px;
+    margin:22px 0;
+  }
+  .dim-card{
+    border:1px solid var(--line);
+    border-radius:6px;
+    padding:12px 14px;
+    background:var(--bg-alt);
+  }
+  .dim-card .d-title{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:.8rem;
+    letter-spacing:.05em;
+    text-transform:uppercase;
+    margin-bottom:4px;
+  }
+  .dim-card.emm .d-title{color:var(--emmare);}
+  .dim-card.lev .d-title{color:var(--levvame);}
+  .dim-card.mul .d-title{color:var(--mulhime);}
+  .dim-card p{font-size:.88rem; color:var(--text-dim); line-height:1.5;}
+
+  button.primary{
+    display:block;
+    width:100%;
+    padding:15px;
+    margin-top:26px;
+    background:var(--gold);
+    color:#141410;
+    border:none;
+    border-radius:6px;
+    font-family:'Crimson Pro', serif;
+    font-weight:600;
+    font-size:1.05rem;
+    letter-spacing:.02em;
+    cursor:pointer;
+    transition:background .2s;
+  }
+  button.primary:hover{background:var(--gold-light);}
+  button.secondary{
+    display:block;
+    width:100%;
+    padding:13px;
+    margin-top:12px;
+    background:transparent;
+    color:var(--text-dim);
+    border:1px solid var(--line);
+    border-radius:6px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:.85rem;
+    cursor:pointer;
+    transition:border-color .2s, color .2s;
+  }
+  button.secondary:hover{border-color:var(--gold); color:var(--gold-light);}
+
+  /* ---- QUESTIONS ---- */
+  .progress-wrap{
+    margin-bottom:28px;
+  }
+  .progress-track{
+    height:3px;
+    background:var(--line);
+    border-radius:2px;
+    overflow:hidden;
+  }
+  .progress-fill{
+    height:100%;
+    background:var(--gold);
+    width:0%;
+    transition:width .3s ease;
+  }
+  .progress-label{
+    display:flex;
+    justify-content:space-between;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:.75rem;
+    color:var(--text-dim);
+    margin-top:8px;
+  }
+  .q-dim-tag{
+    display:inline-block;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:.7rem;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    padding:3px 9px;
+    border-radius:20px;
+    margin-bottom:18px;
+  }
+  .q-dim-tag.emm{background:var(--emmare-dim); color:var(--emmare);}
+  .q-dim-tag.lev{background:var(--levvame-dim); color:var(--levvame);}
+  .q-dim-tag.mul{background:var(--mulhime-dim); color:var(--mulhime);}
+  .q-text{
+    font-size:1.35rem;
+    line-height:1.5;
+    margin-bottom:14px;
+  }
+  .q-example{
+    font-size:.88rem;
+    color:var(--text-dim);
+    line-height:1.5;
+    border-left:2px solid var(--line);
+    padding-left:12px;
+    margin-bottom:28px;
+    min-height:40px;
+    font-style:italic;
+  }
+  .q-example b{color:var(--gold-light); font-style:normal;}
+  .likert{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+  .likert button{
+    text-align:left;
+    padding:14px 16px;
+    background:var(--bg-alt);
+    border:1px solid var(--line);
+    border-radius:6px;
+    color:var(--text);
+    font-family:'Crimson Pro', serif;
+    font-size:1rem;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    gap:12px;
+    transition:border-color .15s, background .15s;
+  }
+  .likert button:hover{border-color:var(--gold); background:#201f1a;}
+  .likert button .num{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:.8rem;
+    color:var(--text-dim);
+    width:18px;
+  }
+  .likert button.selected{
+    border-color:var(--gold);
+    background:#241f14;
+  }
+  .likert button.selected .num{color:var(--gold-light);}
+  .nav-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-top:28px;
+  }
+  .nav-row button{
+    background:transparent;
+    border:none;
+    color:var(--text-dim);
+    font-family:'IBM Plex Mono', monospace;
+    font-size:.85rem;
+    cursor:pointer;
+  }
+  .nav-row button:hover{color:var(--gold-light);}
+  .nav-row button:disabled{opacity:.3; cursor:default;}
+  .next-btn{
+    display:block;
+    width:100%;
+    padding:15px;
+    margin-top:20px;
+    background:var(--gold);
+    color:#141410;
+    border:none;
+    border-radius:6px;
+    font-family:'Crimson Pro', serif;
+    font-weight:600;
+    font-size:1.05rem;
+    cursor:pointer;
+    transition:background .2s, opacity .2s;
+  }
+  .next-btn:hover{background:var(--gold-light);}
+  .next-btn:disabled{opacity:.35; cursor:not-allowed; background:var(--line); color:var(--text-dim);}
+
+  .rec-block{
+    border:1px solid var(--line);
+    border-radius:6px;
+    padding:16px 18px;
+    margin-bottom:16px;
+    background:var(--bg-alt);
+  }
+  .rec-block .rec-title{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:.78rem;
+    text-transform:uppercase;
+    letter-spacing:.05em;
+    color:var(--gold-light);
+    margin-bottom:10px;
+  }
+  .rec-block .rec-item{font-size:.92rem; line-height:1.6; margin-bottom:6px;}
+  .rec-block .rec-item b{color:var(--text);}
+  .rec-note{
+    font-size:.8rem;
+    color:var(--text-dim);
+    font-style:italic;
+    margin-top:8px;
+    line-height:1.5;
+  }
+
+  /* ---- RESULTS ---- */
+  .result-header{
+    text-align:center;
+    margin-bottom:28px;
+  }
+  .result-header .arabic{
+    font-size:1.8rem;
+    color:var(--gold-light);
+    margin-bottom:6px;
+  }
+  .result-header h2{font-weight:600; font-size:1.3rem;}
+
+  .bar-block{margin-bottom:22px;}
+  .bar-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    margin-bottom:6px;
+  }
+  .bar-top .name{font-weight:600; font-size:1.05rem;}
+  .bar-top .pct{font-family:'IBM Plex Mono', monospace; font-size:1rem;}
+  .bar-track{
+    height:10px;
+    background:var(--bg-alt);
+    border:1px solid var(--line);
+    border-radius:5px;
+    overflow:hidden;
+  }
+  .bar-fill{height:100%; width:0%; transition:width 1s ease;}
+  .bar-fill.emm{background:linear-gradient(90deg, var(--emmare-dim), var(--emmare));}
+  .bar-fill.lev{background:linear-gradient(90deg, var(--levvame-dim), var(--levvame));}
+  .bar-fill.mul{background:linear-gradient(90deg, var(--mulhime-dim), var(--mulhime));}
+  .bar-desc{font-size:.85rem; color:var(--text-dim); margin-top:6px; line-height:1.5;}
+
+  .interp{
+    background:var(--bg-alt);
+    border:1px solid var(--line);
+    border-radius:6px;
+    padding:18px;
+    margin:26px 0;
+    font-size:.95rem;
+    line-height:1.7;
+  }
+  .interp .lead{color:var(--gold-light); font-weight:600; margin-bottom:8px; display:block;}
+
+  .sources{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:.72rem;
+    color:var(--text-dim);
+    line-height:1.8;
+    border-top:1px solid var(--line);
+    padding-top:16px;
+    margin-top:20px;
+  }
+
+  #copyStatus{
+    text-align:center;
+    font-size:.8rem;
+    color:var(--gold-light);
+    height:18px;
+    margin-top:8px;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- SCREEN 1: INTRO -->
+  <div class="screen active" id="screen-intro">
+    <div class="intro-header">
+      <div class="arabic">مراتب النفس</div>
+      <h1>Nefis Mertebeleri</h1>
+      <div class="sub">Öz-muhasebe (kendini hesaba çekme) aracı</div>
+    </div>
+
+    <div class="caveat">
+      <strong>Önemli not:</strong> Bu araç bir manevî mertebe tayini (belirleme) yapmaz. Tasavvufta nefsin hangi mertebede olduğu geleneksel olarak ehil bir mürşidin gözlemiyle anlaşılır; kişinin kendi beyanı (self-report) özellikle üst mertebelerde ucbe (kendini beğenmişlik) veya yanıltıcı öz-değerlendirmeye açıktır. Bu yüzden test yalnızca gözlemlenebilir alt üç mertebeyi — <strong>emmâre, levvâme, mülhime</strong> — kapsar; mutmainne ve sonrası mertebeler kapsam dışıdır. Sonuç, sabit bir "sen busun" etiketi değil, üç eğilimin şu anki görece ağırlığıdır.
+    </div>
+
+    <div class="dims">
+      <div class="dim-card emm">
+        <div class="d-title">Nefs-i Emmâre</div>
+        <p>Kötülüğü emreden, şehevî ve hayvanî arzulara tabi, sabırsız ve pişmanlıksız nefis. (Yûsuf 12/53)</p>
+      </div>
+      <div class="dim-card lev">
+        <div class="d-title">Nefs-i Levvâme</div>
+        <p>Kendini kınayan, pişmanlık duyan ama tutarsız — bazen doğruya bazen nefsin isteğine uyan nefis. (Kıyâme 75/2)</p>
+      </div>
+      <div class="dim-card mul">
+        <div class="d-title">Nefs-i Mülhime</div>
+        <p>İlham alan, hayır ile şerri sezgiyle ayırt edebilen, sabır ve şükürle bezenmiş nefis. (Şems 91/7-8)</p>
+      </div>
+    </div>
+
+    <div class="caveat" style="border-left-color:var(--text-dim);">
+      36 soru, tahminen 6-8 dakika. Her soruya son bir ayı düşünerek, olduğun gibi (olmak istediğin gibi değil) cevap ver.
+    </div>
+
+    <button class="primary" onclick="startTest()">Teste Başla</button>
+  </div>
+
+  <!-- SCREEN 2: QUESTIONS -->
+  <div class="screen" id="screen-quiz">
+    <div class="progress-wrap">
+      <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+      <div class="progress-label">
+        <span id="progressText">Soru 1 / 36</span>
+        <span id="progressPct">%3</span>
+      </div>
+    </div>
+
+    <span class="q-dim-tag" id="qDimTag"></span>
+    <div class="q-text" id="qText"></div>
+    <div class="q-example" id="qExample"></div>
+
+    <div class="likert" id="likertGroup">
+      <button data-val="1" onclick="select(1)"><span class="num">1</span> Hiç</button>
+      <button data-val="2" onclick="select(2)"><span class="num">2</span> Nadiren</button>
+      <button data-val="3" onclick="select(3)"><span class="num">3</span> Bazen</button>
+      <button data-val="4" onclick="select(4)"><span class="num">4</span> Sıklıkla</button>
+      <button data-val="5" onclick="select(5)"><span class="num">5</span> Her zaman</button>
+    </div>
+
+    <button class="next-btn" id="nextBtn" onclick="goNext()" disabled>İleri</button>
+
+    <div class="nav-row">
+      <button id="backBtn" onclick="goBack()">← Geri</button>
+      <button onclick="showScreen('screen-intro')">Baştan başla</button>
+    </div>
+  </div>
+
+  <!-- SCREEN 3: RESULTS -->
+  <div class="screen" id="screen-result">
+    <div class="result-header">
+      <div class="arabic">حاسبوا أنفسكم قبل أن تُحاسَبوا</div>
+      <h2>Sonuçların</h2>
+    </div>
+
+    <div class="bar-block">
+      <div class="bar-top"><span class="name" style="color:var(--emmare)">Emmâre</span><span class="pct mono" id="pctEmm">%0</span></div>
+      <div class="bar-track"><div class="bar-fill emm" id="barEmm"></div></div>
+      <div class="bar-desc">Şehevî arzular, öfke, sabırsızlık, pişmanlıksızlık eğilimi.</div>
+    </div>
+    <div class="bar-block">
+      <div class="bar-top"><span class="name" style="color:var(--levvame)">Levvâme</span><span class="pct mono" id="pctLev">%0</span></div>
+      <div class="bar-track"><div class="bar-fill lev" id="barLev"></div></div>
+      <div class="bar-desc">Pişmanlık, iç muhasebe, tutarsızlık — doğru ile nefis arasında gidip gelme.</div>
+    </div>
+    <div class="bar-block">
+      <div class="bar-top"><span class="name" style="color:var(--mulhime)">Mülhime</span><span class="pct mono" id="pctMul">%0</span></div>
+      <div class="bar-track"><div class="bar-fill mul" id="barMul"></div></div>
+      <div class="bar-desc">Sabır, şükür, tevazu, hayır-şer temyizi (ayırt etme), ilim-amel bütünlüğü.</div>
+    </div>
+
+    <div class="interp" id="interpBox"></div>
+
+    <div id="recBox"></div>
+
+    <div class="sources">
+      KAYNAKLAR: Yûsuf 12/53 · Kıyâme 75/2 · Şems 91/7-8 · Fecr 89/27-30<br>
+      Kuşeyrî, er-Risâle (çev. Süleyman Uludağ) · Elmalılı, Hak Dini Kur'an Dili, VIII/5814<br>
+      Esma tariki / atvâr-ı seb'a zikirleri: Halvetiyye-Celvetiyye geleneği (İsmail Hakkı Bursevî, Risâle-i Esmâ-i Seb'a; Sofyalı Bâlî Efendi, Atvâr-ı Seb'a)
+    </div>
+
+    <button class="secondary" onclick="copyResults()">Sonuçları kopyala</button>
+    <div id="copyStatus"></div>
+    <button class="secondary" onclick="location.reload()">Testi yeniden başlat</button>
+  </div>
+
+</div>
+
+<script>
+const QUESTIONS = [
+  // EMMÂRE
+  {dim:'emm', text:'Anlık isteklerimi hemen karşılamazsam huzursuz olurum.', ex:'Örnek: Acıktığımda hemen yemek bulamazsam sinirlenip huzursuzlanırım.'},
+  {dim:'emm', text:'Bir şeyi çok istediğimde sonucunu düşünmeden peşinden giderim.', ex:'Örnek: Beğendiğim bir ürünü, bütçemi zorlayacağını bilsem de hemen satın alırım.'},
+  {dim:'emm', text:'Öfkelendiğimde kontrolümü kaybedip sonra pişman olacağım sözler söylerim.', ex:'Örnek: Tartışırken karşımdakine kırıcı bir söz söylerim, sonra pişman olurum.'},
+  {dim:'emm', text:'Yaptığım bir hatadan dolayı içimde bir sızı, bir rahatsızlık hissetmem.', ex:'Örnek: Birine haksızlık ettiğimi bilsem bile vicdanen rahatsız olmam.'},
+  {dim:'emm', text:'Başkalarının hakkını gözetmeden kendi çıkarımı öne alırım.', ex:'Örnek: Ortak bir işte payımı, verdiğim emekten fazla alırım.'},
+  {dim:'emm', text:'Nefsimin isteklerine karşı gelmek bana gereksiz ve zahmetli gelir.', ex:'Örnek: "Bir kere ne olur" diyerek tutmam gereken bir sınırı kolayca aşarım.'},
+  {dim:'emm', text:'Kendimi başkalarından üstün görüp kibirlenirim.', ex:'Örnek: Bir konuda bilgili olduğumda karşımdakini küçümserim.'},
+  {dim:'emm', text:'Dünya nimetlerine (mal, itibar, konfor) duyduğum düşkünlük, ibadetimin önüne geçer.', ex:'Örnek: İş toplantısı namaz vaktine denk gelince namazı ertelerim.'},
+  {dim:'emm', text:'Hoşuma gitmeyen bir emri (dini veya vicdani) kolayca görmezden gelirim.', ex:'Örnek: Bana zor gelen bir tavsiyeyi bile bile uygulamam.'},
+  {dim:'emm', text:'Bir günahı işlerken içimde caydırıcı bir ses duymam.', ex:'Örnek: Yalan söylerken hiç tereddüt etmem.'},
+  {dim:'emm', text:'Sabırsızımdır; emek vermek yerine kestirme yollar ararım.', ex:'Örnek: Bir işi doğru yapmak yerine çabuk bitmesi için kısa yola giderim.'},
+  {dim:'emm', text:'Gıybet, kıskançlık gibi hallere kolayca kapılırım.', ex:'Örnek: Bir arkadaşımın başarısını duyduğumda içimde kıskançlık hissederim.'},
+  // LEVVÂME
+  {dim:'lev', text:'Bir hata yaptığımda kendimi içten içe kınarım.', ex:'Örnek: Birine ters bir söz söyledikten sonra "bunu neden yaptım" diye kendimi eleştiririm.'},
+  {dim:'lev', text:'Yaptığım işin doğru olup olmadığını sürekli sorgularım.', ex:'Örnek: Bir kararı verdikten sonra bile "doğru muydu" diye içimden geçiririm.'},
+  {dim:'lev', text:'Bazen doğru yolda, bazen nefsimin isteğine uyarım; tutarlı değilimdir.', ex:'Örnek: Bir hafta düzenli ibadet ederim, sonraki hafta bırakırım.'},
+  {dim:'lev', text:'Günah işledikten sonra pişman olup tövbe ederim, fakat zamanla aynı hataya dönerim.', ex:'Örnek: Bir alışkanlığı bırakırım, birkaç ay sonra tekrar başlarım.'},
+  {dim:'lev', text:'Bir yanlıştan sonra huzursuzluk hissi günlerce içimde kalır.', ex:'Örnek: Ailemle tartıştıktan sonra günlerce içim rahat etmez.'},
+  {dim:'lev', text:'Kendimi başkalarıyla kıyaslayıp yetersiz bulduğumda kendimi ağır eleştiririm.', ex:'Örnek: Bir arkadaşımın başarısını görünce kendimi yetersiz bulup üzülürüm.'},
+  {dim:'lev', text:'Vicdan azabı beni harekete geçirir; değişmek için gerçekten çaba gösteririm.', ex:'Örnek: Birini kırdığımda gidip özür dilerim.'},
+  {dim:'lev', text:'İbadetlerimi bazen istekle, bazen isteksizce yaparım.', ex:'Örnek: Bazı günler namazı huşu ile kılarım, bazı günler sadece görev olarak kılarım.'},
+  {dim:'lev', text:'Bir yanlışımı fark ettiğimde özür dilemek veya telafi etmek isterim.', ex:'Örnek: Yanlış bilgi verdiğimi anladığımda karşımdakini arayıp düzeltirim.'},
+  {dim:'lev', text:'İçimde iyilik ile kötülük arasında sürekli bir çekişme hissederim.', ex:'Örnek: Yalan söyleyip söylememek arasında içimde bir çatışma yaşarım.'},
+  {dim:'lev', text:'Geçmişteki hatalarımı hatırladıkça utanç duyarım.', ex:'Örnek: Yıllar önce yaptığım bir hatayı hatırladığımda hâlâ mahcup olurum.'},
+  {dim:'lev', text:'Kendimi hesaba çekme (yaptıklarımı sorgulama) alışkanlığım vardır.', ex:'Örnek: Gece yatmadan önce o günü nasıl geçirdiğimi gözden geçiririm.'},
+  // MÜLHİME
+  {dim:'mul', text:'Doğru ile yanlışı ayırt etmekte iç sezgim (feraset) bana yol gösterir.', ex:'Örnek: Bir teklif karşıma çıktığında içimden "bu doğru değil" dediğim an genelde haklı çıkarım.'},
+  {dim:'mul', text:'Zorluklar karşısında sabretmeyi başarırım.', ex:'Örnek: Uzun süren bir sıkıntıda isyan etmeden dayanabilirim.'},
+  {dim:'mul', text:'Elimdeki nimetlere karşı bir şükür hâli içindeyimdir.', ex:'Örnek: Sade bir yemek yerken bile içimden Allah\'a şükrederim.'},
+  {dim:'mul', text:'Başkalarına karşı cömert davranırım, elimdekini paylaşmaktan çekinmem.', ex:'Örnek: İhtiyacı olan birine, kendim de dar olsam yardım ederim.'},
+  {dim:'mul', text:'Haklı olduğum bir durumda bile tevazuu elden bırakmam.', ex:'Örnek: Bir tartışmayı haklı çıksam bile büyütmeden kapatırım.'},
+  {dim:'mul', text:'Nefsimin isteklerine direnme gücüm, önceki hâllerime göre artmıştır.', ex:'Örnek: Eskiden dayanamadığım bir arzuya artık kolayca "hayır" diyebiliyorum.'},
+  {dim:'mul', text:'Bildiğimi yaşamaya, ilmimi amelimle bütünleştirmeye gayret ederim.', ex:'Örnek: Öğrendiğim bir hadisi hemen hayatıma uygulamaya çalışırım.'},
+  {dim:'mul', text:'Şehevî ve dünyevî arzular eskisi kadar bana cazip gelmiyor.', ex:'Örnek: Eskiden çok önem verdiğim bir statü sembolü artık beni cezbetmiyor.'},
+  {dim:'mul', text:'Kalbimde bir huzur ve tatmin hâlini sıkça hissederim.', ex:'Örnek: Zor bir gün geçirsem bile içimde bir sükûnet hissederim.'},
+  {dim:'mul', text:'Başıma gelen sıkıntıları bir hikmet olarak görürüm.', ex:'Örnek: Bir kayıp yaşadığımda "bunda bir hayır vardır" diyebilirim.'},
+  {dim:'mul', text:'Karar verirken önce doğruyu, sonra nefsimin arzusunu düşünürüm.', ex:'Örnek: Kâr getirecek ama şüpheli (helal olup olmadığı belirsiz) bir işi reddederim.'},
+  {dim:'mul', text:'Riyazet (nefsin isteklerini kısma) ve mücahede (nefisle mücadele) bana ağır gelmiyor, bir gayret hâli olarak hissediyorum.', ex:'Örnek: Nefsimin istemediği bir ibadeti (gece namazı gibi) sevdiğim bir gayret olarak görürüm.'}
+];
+
+let current = 0;
+let answers = new Array(QUESTIONS.length).fill(null);
+
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+function startTest(){
+  current = 0;
+  answers = new Array(QUESTIONS.length).fill(null);
+  showScreen('screen-quiz');
+  renderQuestion();
+}
+
+function renderQuestion(){
+  const q = QUESTIONS[current];
+  const tag = document.getElementById('qDimTag');
+  tag.className = 'q-dim-tag ' + q.dim;
+  tag.textContent = q.dim === 'emm' ? 'Emmâre' : (q.dim === 'lev' ? 'Levvâme' : 'Mülhime');
+  document.getElementById('qText').textContent = q.text;
+  document.getElementById('qExample').textContent = q.ex;
+  document.getElementById('progressText').textContent = `Soru ${current+1} / ${QUESTIONS.length}`;
+  const pct = Math.round(((current+1)/QUESTIONS.length)*100);
+  document.getElementById('progressPct').textContent = `%${pct}`;
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('backBtn').disabled = current === 0;
+
+  document.querySelectorAll('#likertGroup button').forEach(btn=>{
+    btn.classList.toggle('selected', Number(btn.dataset.val) === answers[current]);
+  });
+  const nextBtn = document.getElementById('nextBtn');
+  nextBtn.disabled = answers[current] === null;
+  nextBtn.textContent = current === QUESTIONS.length - 1 ? 'Bitir' : 'İleri';
+}
+
+function select(val){
+  answers[current] = val;
+  document.querySelectorAll('#likertGroup button').forEach(btn=>{
+    btn.classList.toggle('selected', Number(btn.dataset.val) === val);
+  });
+  document.getElementById('nextBtn').disabled = false;
+}
+
+function goNext(){
+  if(answers[current] === null) return;
+  if(current < QUESTIONS.length - 1){
+    current++;
+    renderQuestion();
+  } else {
+    showResults();
+  }
+}
+
+function goBack(){
+  if(current > 0){
+    current--;
+    renderQuestion();
+  }
+}
+
+function showResults(){
+  let sums = {emm:0, lev:0, mul:0};
+  let counts = {emm:0, lev:0, mul:0};
+  QUESTIONS.forEach((q,i)=>{
+    const v = answers[i] || 0;
+    sums[q.dim]+=v;
+    counts[q.dim]++;
+  });
+  const pctEmm = Math.round((sums.emm/(counts.emm*5))*100);
+  const pctLev = Math.round((sums.lev/(counts.lev*5))*100);
+  const pctMul = Math.round((sums.mul/(counts.mul*5))*100);
+
+  showScreen('screen-result');
+  document.getElementById('pctEmm').textContent = '%' + pctEmm;
+  document.getElementById('pctLev').textContent = '%' + pctLev;
+  document.getElementById('pctMul').textContent = '%' + pctMul;
+  setTimeout(()=>{
+    document.getElementById('barEmm').style.width = pctEmm + '%';
+    document.getElementById('barLev').style.width = pctLev + '%';
+    document.getElementById('barMul').style.width = pctMul + '%';
+  }, 100);
+
+  const box = document.getElementById('interpBox');
+  const max = Math.max(pctEmm, pctLev, pctMul);
+  let leadDim, leadText;
+  if(max === pctMul && pctMul >= pctEmm && pctMul >= pctLev){
+    leadDim = 'Mülhime eğilimi öne çıkıyor.';
+    leadText = 'Bu, nefsin tamamen ıslah olduğu anlamına gelmez; mülhime hâli emmâre ve levvâmeyle birlikte, dalgalı biçimde var olmaya devam edebilir. Kazanımı sürdürmek için ilim-amel bütünlüğüne ve mücahedeye devam etmek gerekir.';
+  } else if(max === pctLev){
+    leadDim = 'Levvâme eğilimi öne çıkıyor.';
+    leadText = 'Pişmanlık duyup kendini sorgulama, ıslahın başlangıcıdır. Levvâmenin iki yüzü vardır — biri emmâreye, biri mülhimeye bakar. Hangi yöne meylettiğin, mücadeleni sürdürüp sürdürmediğine bağlı.';
+  } else {
+    leadDim = 'Emmâre eğilimi öne çıkıyor.';
+    leadText = 'Bu bir yargılama değil, bir tespit. Nefs-i emmârenin baskın olması, mücahedeye (nefisle mücadeleye) daha çok ihtiyaç olduğunu gösterir. İlk adım genellikle kendini kınamaya (levvâme) geçiştir.';
+  }
+
+  box.innerHTML = `<span class="lead">${leadDim}</span>${leadText}<br><br>Üç mertebe de aynı anda, farklı oranlarda kalpte bulunabilir; nefis sabit değil, hâlden hâle geçen bir yapıdır. Bu sonuç yalnızca şu anki bir fotoğraftır, nihai bir hüküm değildir.`;
+
+  renderRecommendations(pctEmm, pctLev, pctMul);
+}
+
+const RECOMMENDATIONS = {
+  emm:{
+    title:'Emmâre ağırlıklıysa — Yol Haritası',
+    zikir:'Geleneksel esma tarikinde nefs-i emmâre mertebesinde çekilen zikir <b>"Lâ ilâhe illallah"</b> (kelime-i tevhid) ve bol istiğfardır (<b>"Estağfirullah"</b>).',
+    kitap:[
+      'İmam Gazâlî, <b>İhyâu Ulûmi\'d-Dîn</b> (nefis terbiyesi ve ahlâk bahisleri)',
+      'İmam Gazâlî, <b>Kalplerin Keşfi (Mükâşefetü\'l-Kulûb)</b>',
+      'Abdülkadir Geylânî, <b>Gunyetü\'t-Tâlibîn</b> (ilim, ibadet ve nefis terbiyesi temel eseri)'
+    ],
+    soz:'"Tövbe, yönetim değişikliğidir." — Abdülkadir Geylânî'
+  },
+  lev:{
+    title:'Levvâme ağırlıklıysa — Yol Haritası',
+    zikir:'Esma tarikinde nefs-i levvâme mertebesinde çekilen zikir <b>"Allah"</b> ismidir.',
+    kitap:[
+      'Kuşeyrî, <b>er-Risâletü\'l-Kuşeyriyye</b> (çev. Süleyman Uludağ) — tövbe ve muhâsebe bahisleri',
+      'Hâris el-Muhâsibî, <b>er-Riâye li-Hukûkillah</b>',
+      'Abdülkadir Geylânî, <b>Fütûhu\'l-Gayb</b> (nefisle mücadele üzerine sohbetler)'
+    ],
+    soz:'"Nefsine hiçbir hâli ve makamı nispet etme!" — Abdülkadir Geylânî'
+  },
+  mul:{
+    title:'Mülhime ağırlıklıysa — Yol Haritası',
+    zikir:'Esma tarikinde nefs-i mülhime mertebesinde çekilen zikir <b>"Hû"</b> ismidir.',
+    kitap:[
+      'Abdülkadir Geylânî, <b>Sırru\'l-Esrâr</b>',
+      'Abdülkadir Geylânî, <b>Fethu\'r-Rabbânî</b> (İlahi Armağan)'
+    ],
+    soz:'"İlim kılıç, amel el gibidir. El olmadan kılıç kesmez, kılıç olmadan da el kesmez." — Abdülkadir Geylânî'
+  }
+};
+
+function renderRecommendations(pctEmm, pctLev, pctMul){
+  const scores = {emm:pctEmm, lev:pctLev, mul:pctMul};
+  const sorted = Object.keys(scores).sort((a,b)=>scores[b]-scores[a]);
+  const top = sorted[0];
+  const rec = RECOMMENDATIONS[top];
+
+  const box = document.getElementById('recBox');
+  box.innerHTML = `
+    <div class="rec-block">
+      <div class="rec-title">${rec.title}</div>
+      <div class="rec-item">${rec.zikir}</div>
+      <div class="rec-item"><b>Okunacak kitaplar:</b></div>
+      ${rec.kitap.map(k=>`<div class="rec-item">— ${k}</div>`).join('')}
+      <div class="rec-item" style="margin-top:10px; font-style:italic;">${rec.soz}</div>
+      <div class="rec-note">Not: Esma zikirleri geleneksel olarak bir mürşid tarafından telkin edilir (öğretilir) ve ders sayısı, virdi mürşid belirler. Burada verilenler bilgilendirme amaçlıdır; bir mürşidin veya sohbet ehlinin gözetimi olmadan kendi başına bir zikir virdi başlatmak geleneksel usule aykırıdır.</div>
+    </div>`;
+}
+
+function copyResults(){
+  const pctEmm = document.getElementById('pctEmm').textContent;
+  const pctLev = document.getElementById('pctLev').textContent;
+  const pctMul = document.getElementById('pctMul').textContent;
+  const text = `Nefis Mertebeleri Öz-Muhasebe Sonucu\nEmmâre: ${pctEmm}\nLevvâme: ${pctLev}\nMülhime: ${pctMul}`;
+
+  const status = document.getElementById('copyStatus');
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(()=>{
+      status.textContent = 'Kopyalandı.';
+      setTimeout(()=>status.textContent='', 2000);
+    }).catch(()=>{ fallbackCopy(text, status); });
+  } else {
+    fallbackCopy(text, status);
+  }
+}
+
+function fallbackCopy(text, status){
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed';
+  ta.style.opacity = '0';
+  document.body.appendChild(ta);
+  ta.select();
+  try{
+    document.execCommand('copy');
+    status.textContent = 'Kopyalandı.';
+  }catch(e){
+    status.textContent = 'Kopyalama başarısız oldu.';
+  }
+  document.body.removeChild(ta);
+  setTimeout(()=>status.textContent='', 2000);
+}
+</script>
+</body>
+</html>
